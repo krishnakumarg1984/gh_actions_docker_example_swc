@@ -1,0 +1,35 @@
+name: Deploy pages
+on:
+  push:
+    branches:
+      - main
+jobs:
+  # a free machine-readable name for this job
+  deploy:
+    # Set permissions for this specific job to enable it to write to the gh-pages branch
+    permissions:
+      contents: write
+    # specify the base operating system
+    runs-on: ubuntu-latest
+    steps:
+      # fetch the contents of the repository
+      - name: Checkout repo content
+        uses: actions/checkout@v4
+      - name: Prepare build environment
+        run: |   # multiple Bash commands follow
+          mkdir -p build
+          touch build/.nojekyll   
+      - name: Run pandoc
+        # Always specify a version!
+        uses: docker://pandoc/core:3.6.3
+        with:
+          args: >-  # multi-line argument
+            --standalone
+            --output=build/index.html
+            README.md
+      - name: Deploy on github pages
+        # Use a third-party plugin to upload the content
+        uses: JamesIves/github-pages-deploy-action@4.7.3
+        with:
+          branch: gh-pages
+          folder: build
